@@ -1,0 +1,23 @@
+- hosts: all
+  become: true
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade all packages
+      apt:
+        upgrade: yes
+        autoremove: yes
+        autoclean: yes
+
+    - name: Reboot if required no confirm
+      reboot:
+#        when: reboot_required_file.stat.exists == true
+        msg: "A system reboot is required to apply changes. The system will reboot automatically in 30 seconds."
+        reboot_timeout: 60
+        post_reboot_delay: 10
+        pre_reboot_delay: 5
