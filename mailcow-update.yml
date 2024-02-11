@@ -1,6 +1,5 @@
 ---
 - name: Run script with confirmation
-  hosts: your_host
   become: yes
   tasks:
     - name: Execute script
