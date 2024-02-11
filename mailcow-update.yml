@@ -1,27 +1,19 @@
 ---
-- name: Run script with confirmation
-  hosts: mailcow
-  become: yes
-  tasks:
-    - name: Execute script
-      command: "/opt/mailcow-dockerized/mailcow.sh"
-      args:
-        creates: "/opt/mailcow-dockerized/mailcow.lock"
-      register: script_output
-      ignore_errors: yes
 
-    - name: Confirm script execution
-      pause:
-        prompt: "Do you want to start the script? (y/n): "
-      register: confirm_start
+- name: Install Python3
+  hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - { role: raw,0.0, vars: {command: 'apt-get install -y python3 python3-pip'} }
 
-    - name: Handle confirmation
-      command: "/opt/mailcow-dockerized/mailcow.sh"
-      args:
-        creates: "/opt/mailcow-dockerized/mailcow.lock"
-      when: confirm_start.user_input == 'y'
-
-    - name: Print script output
-      debug:
-        msg: "{{ script_output.stdout }}"
-      when: script_output|succeeded
+- name: Main Playbook
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    mailcow__timezone: Europe/Berlin
+  roles:
+    - Ansible-Roles.docker-ce
+    - Ansible-Roles.docker-compose
+    - Ansible-Roles.mailcow
