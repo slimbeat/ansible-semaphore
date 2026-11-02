@@ -1,15 +1,25 @@
 - hosts: all
   become: true
-  vars_files:
-  
-  tasks:
-    - name: Update package cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
+  gather_facts: false
+  serial: 1
 
+  tasks:
     - name: Upgrade all packages
-      apt:
-        upgrade: yes
-        autoremove: yes
-        autoclean: yes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        upgrade: safe
+        autoremove: true
+        autoclean: true
+        lock_timeout: 300
+
+    - name: Check whether a reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Reboot if required
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+        msg: "Rebooting after package upgrades"
+      when: reboot_required.stat.exists
